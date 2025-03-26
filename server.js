@@ -1,6 +1,7 @@
 
 require("dotenv").config();
 const express = require("express");
+const { body, validationResult } = require("express-validator");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,11 +31,31 @@ app.get("/users/:id", (req, res) => {
 
 //POST -- Add a new user
 
+/**
 app.post("/users", (req, res) => {
 	const { name } = req.body;
 	const newUser = { id: users.length +1, name};
 	users.push(newUser);
 	res.status(201).json(newUser);
+});*/
+
+/** POST- add new User with validation */
+app.post("/users", (req, res) => {
+	[
+		body("name").notEmpty().withMessage("Name is required"),
+	],
+	(req, res) => {
+		const errors = validationResult(req);
+		if (!errors.isEmpty()) {
+			return res.status(400).json({ errors: errors.array()});
+
+		}
+
+		const {name} = req.body;
+		const newUser = { id:users.length +1, name};
+		users.push(newUser);
+		res.status(201).json(newUser);
+	}
 });
 
 // PUT --Update a user
