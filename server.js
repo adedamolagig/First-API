@@ -40,7 +40,7 @@ app.post("/users", (req, res) => {
 });*/
 
 /** POST- add new User with validation */
-app.post("/users", (req, res) => {
+app.post("/users",
 	[
 		body("name").notEmpty().withMessage("Name is required"),
 	],
@@ -52,14 +52,25 @@ app.post("/users", (req, res) => {
 		}
 
 		const {name} = req.body;
-		const newUser = { id:users.length +1, name};
+		const newUser = { id: users.length + 1, name };
 		users.push(newUser);
 		res.status(201).json(newUser);
 	}
-});
+);
 
 // PUT --Update a user
-app.put("/users/:id", (req, res) => {
+app.put("/users/:id",
+	[
+		body("name").notEmpty().withMessage("Name is required"),
+
+	], 
+
+	(req, res) => {
+	
+	const errors = validationResult(req);
+	if (!errors.isEmpty()){
+		return res.status(400).json({ errors: errors.array()});
+	}
 	const user = users.find(u => u.id === parseInt(req.params.id));
 	if (!user) return res.status(404).json({ message: "User not found"});
 	user.name = req.body.name || user.name;
@@ -67,24 +78,41 @@ app.put("/users/:id", (req, res) => {
 });
 
 //PATCH ----To partially update user
-app.patch("/users/:id", (req, res) => {
-	const {id} = req.params;
-	const {name} = req.body;
+app.patch("/users/:id", 
+	[
+		body("name").optional().notEmpty().withMessage("Name cannot be empty"),
+
+	],  
+
+	(req, res) => {	
+	if (!errors.isEmpty()){
+		return res.status(400).json({ errors: errors.array()});
+	}
 
 	const user = users.find((u) => u.id === parseInt(id));
-	if (!user) return res.status(404).json({ message: "user not found"});
-	if (name) user.name = name;
+	if (!user) { return res.status(404).json({ message: "user not found"});
+	}
+	if (req.body.name) user.name = req.body.name;
 
-	res.json({ message: "user updated successfully", user});
+	res.json({ message: "user updated successfully", user });
 });
 
-//DELETE -- Remove a user
+/**DELETE -- Remove a user
 app.delete("/users/:id", (req, res) => {
 	users = users.filter(u => u.id !== parseInt(req.params.id));
 	res.json({ message: "User deleted" });
+});*/
+
+// Delete User with Authentication
+app.delete("/users/:id", (req, res) => {
+	const userIndex = users.findIndex(u => u.id == parseInt(req.params.id));
+	if (userIndex === -1){
+		return res.status(404).json({ error: "User not found"});
+	}
+
+	users.splice(userIndex, 1);
+	res.json({ message: "User deleted successfully" });
 });
-
-
 
 app.listen(PORT, () => {
 	console.log(`Server running on http://localhost:${PORT}`);
