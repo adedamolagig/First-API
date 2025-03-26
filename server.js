@@ -5,6 +5,8 @@ const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+/* Required for parsing JSON request body */
+
 app.use(express.json()); /** Middleware to parse JSON */
 
 /** Sample data (temporary in-memory storage);*/
@@ -41,6 +43,18 @@ app.put("/users/:id", (req, res) => {
 	if (!user) return res.status(404).json({ message: "User not found"});
 	user.name = req.body.name || user.name;
 	res.json(user);
+});
+
+//PATCH ----To partially update user
+app.patch("/users/:id", (req, res) => {
+	const {id} = req.params;
+	const {name} = req.body;
+
+	const user = users.find((u) => u.id === parseInt(id));
+	if (!user) return res.status(404).json({ message: "user not found"});
+	if (name) user.name = name;
+
+	res.json({ message: "user updated successfully", user});
 });
 
 //DELETE -- Remove a user
